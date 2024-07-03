@@ -1,7 +1,7 @@
-# Hailo8L on Raspberry Pi 5
+# Hailo8L on Raspberry Pi 5 in C++
 
 This is a minimal example of running YOLOv8 inference on a Raspberry Pi 5 with
-a Hailo8L TPU.
+a Hailo8L TPU, using the C++ API.
 
 The files in here are sourced/adapted from https://github.com/hailo-ai/Hailo-Application-Code-Examples
 and https://github.com/raspberrypi/rpicam-apps
@@ -43,4 +43,3 @@ You can change the model filename at the top of yolov8.cpp from `yolov8s.hef` to
 And you can find a list of all available models here:
 
 https://github.com/hailo-ai/hailo_model_zoo/blob/master/docs/public_models/HAILO8L/HAILO8l_object_detection.rst
-
