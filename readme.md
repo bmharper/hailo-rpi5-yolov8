@@ -34,7 +34,8 @@ class: 0, confidence: 0.93, 98,87 - 244,520
 class: 0, confidence: 0.90, 248,114 - 403,524
 class: 16, confidence: 0.93, 453,346 - 596,543
 class: 26, confidence: 0.84, 301,186 - 385,341
-SUCCESS```
+SUCCESS
+```
 
 ### Other YOLOv8 Models
 
