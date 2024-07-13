@@ -15,6 +15,7 @@
 std::string hefFile             = "yolov8s.hef";
 std::string imgFilename         = "test-image-640x640.jpg";
 float       confidenceThreshold = 0.5f;
+int         batchSize           = 1; // This doesn't work for sizes other than 1. I'm still trying to figure out batch sizes.
 
 int run() {
 	using namespace hailort;
@@ -39,6 +40,7 @@ int run() {
 	}
 	std::shared_ptr<hailort::InferModel> infer_model = infer_model_exp.release();
 	infer_model->set_hw_latency_measurement_flags(HAILO_LATENCY_MEASURE);
+	infer_model->set_batch_size(batchSize);
 
 	//printf("infer_model N inputs: %d\n", (int) infer_model->inputs().size());
 	//printf("infer_model N outputs: %d\n", (int) infer_model->outputs().size());
@@ -87,34 +89,42 @@ int run() {
 		printf("Input image resolution %d x %d not equal to NN input resolution %d x %d\n", imgWidth, imgHeight, nnWidth, nnHeight);
 	}
 
-	auto status = bindings.input(input_name)->set_buffer(MemoryView((void*) (img_rgb_8), input_frame_size));
-	if (status != HAILO_SUCCESS) {
-		printf("Failed to set memory buffer: %d\n", (int) status);
-		return status;
+	size_t   singleImageSize = imgWidth * imgHeight * imgChan;
+	uint8_t* img_batch       = (uint8_t*) malloc(singleImageSize * batchSize);
+	for (int i = 0; i < batchSize; i++) {
+		memcpy(img_batch + i * singleImageSize, img_rgb_8, singleImageSize);
 	}
 
 	auto startTime = std::chrono::high_resolution_clock::now(); // this will be overwritten after the 1st run
-	int  nRun      = 100;
+	int  nRun      = 10;
 
 	for (int iRun = 0; iRun < nRun + 1; iRun++) {
 		if (iRun == 1) {
 			// Ignore the first run, which is much slower than the rest
 			startTime = std::chrono::high_resolution_clock::now();
 		}
+		auto status = bindings.input(input_name)->set_buffer(MemoryView(img_batch, input_frame_size * batchSize));
+		if (status != HAILO_SUCCESS) {
+			printf("Failed to set memory buffer: %d\n", (int) status);
+			return status;
+		}
+
 		//printf(".");
 		std::vector<OutTensor> output_tensors;
 
 		// Output tensors.
 		for (auto const& output_name : infer_model->get_output_names()) {
 			size_t output_size = infer_model->output(output_name)->get_frame_size();
+			//printf("output_size = %d\n", (int) output_size);
 
-			uint8_t* output_buffer = (uint8_t*) malloc(output_size);
+			size_t   total_output_size = output_size * batchSize;
+			uint8_t* output_buffer     = (uint8_t*) malloc(total_output_size);
 			if (!output_buffer) {
 				printf("Could not allocate an output buffer!");
 				return status;
 			}
 
-			status = bindings.output(output_name)->set_buffer(MemoryView(output_buffer, output_size));
+			status = bindings.output(output_name)->set_buffer(MemoryView(output_buffer, total_output_size));
 			if (status != HAILO_SUCCESS) {
 				printf("Failed to set infer output buffer, status = %d", (int) status);
 				return status;
@@ -154,8 +164,9 @@ int run() {
 	}
 
 	double elapsedSeconds = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
-	printf("FPS: %.2f\n", nRun / elapsedSeconds);
-	printf("Time per iteration: %.1fms\n", 1000.0 * elapsedSeconds / nRun);
+	int    nFrames        = nRun * batchSize;
+	printf("FPS: %.2f\n", nFrames / elapsedSeconds);
+	printf("Time per frame: %.1fms\n", 1000.0 * elapsedSeconds / nFrames);
 
 	return 123456789;
 }
