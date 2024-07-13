@@ -107,13 +107,13 @@ int run() {
 	for (auto const& output_name : infer_model->get_output_names()) {
 		size_t output_size = infer_model->output(output_name)->get_frame_size();
 
-		std::shared_ptr<uint8_t> output_buffer = allocator.Allocate(output_size);
+		uint8_t* output_buffer = (uint8_t*) malloc(output_size);
 		if (!output_buffer) {
 			printf("Could not allocate an output buffer!");
 			return status;
 		}
 
-		status = bindings.output(output_name)->set_buffer(MemoryView(output_buffer.get(), output_size));
+		status = bindings.output(output_name)->set_buffer(MemoryView(output_buffer, output_size));
 		if (status != HAILO_SUCCESS) {
 			printf("Failed to set infer output buffer, status = %d", (int) status);
 			return status;
@@ -122,7 +122,7 @@ int run() {
 		const std::vector<hailo_quant_info_t> quant  = infer_model->output(output_name)->get_quant_infos();
 		const hailo_3d_image_shape_t          shape  = infer_model->output(output_name)->shape();
 		const hailo_format_t                  format = infer_model->output(output_name)->format();
-		output_tensors.emplace_back(std::move(output_buffer), output_name, quant[0], shape, format);
+		output_tensors.emplace_back(output_buffer, output_name, quant[0], shape, format);
 
 		printf("Output tensor %s, %d bytes, shape (%d, %d, %d)\n", output_name.c_str(), (int) output_size, (int) shape.height, (int) shape.width, (int) shape.features);
 		// printf("  %s\n", DumpFormat(format).c_str());
@@ -168,7 +168,7 @@ int run() {
 	if (nmsOnHailo) {
 		OutTensor* out = &output_tensors[0];
 
-		const float* raw = (const float*) out->data.get();
+		const float* raw = (const float*) out->data;
 
 		printf("Output shape: %d, %d\n", (int) out->shape.height, (int) out->shape.width);
 
