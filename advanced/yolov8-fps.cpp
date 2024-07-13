@@ -4,14 +4,13 @@
 #include <hailo/infer_model.hpp>
 #include <chrono>
 
-#include "../allocator.h"
 #include "../output_tensor.h"
 #include "../debug.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 
-// g++ -O2 -o yolov8-fps advanced/yolov8-fps.cpp allocator.cpp -lhailort && ./yolov8-fps
+// g++ -O2 -o yolov8-fps advanced/yolov8-fps.cpp -lhailort && ./yolov8-fps
 
 std::string hefFile             = "yolov8s.hef";
 std::string imgFilename         = "test-image-640x640.jpg";

@@ -12,7 +12,7 @@ CXXFLAGS = -std=c++17 -O3
 LDFLAGS = -lhailort
 
 # Source files
-SRCS = yolov8.cpp allocator.cpp
+SRCS = yolov8.cpp
 
 # Object files directory
 OBJDIR = bin

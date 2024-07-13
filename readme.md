@@ -16,7 +16,7 @@ of the Hailo8L TPU.
 
 2. `curl -o yolov8s.hef https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.11.0/hailo8l/yolov8s.hef`
 
-3. `g++ -o yolohailo yolov8.cpp allocator.cpp -lhailort && ./yolohailo`
+3. `g++ -o yolohailo yolov8.cpp -lhailort && ./yolohailo`
 
 Expected output:
 
@@ -43,3 +43,9 @@ You can change the model filename at the top of yolov8.cpp from `yolov8s.hef` to
 And you can find a list of all available models here:
 
 https://github.com/hailo-ai/hailo_model_zoo/blob/master/docs/public_models/HAILO8L/HAILO8l_object_detection.rst
+
+### Measuring FPS
+
+The example inside [advanced/yolov8-fps.cpp](./advanced/yolov8-fps.cpp) measures the FPS achievable
+by serially running the model, waiting for results, and running again (i.e. no model parallelism),
+at batch size 1.

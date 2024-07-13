@@ -4,7 +4,6 @@
 #include <hailo/infer_model.hpp>
 #include <chrono>
 
-#include "allocator.h"
 #include "output_tensor.h"
 #include "debug.h"
 
@@ -14,10 +13,10 @@
 // Use these invocations to build, or 'make'
 
 // Release
-// g++ -o yolohailo yolov8.cpp allocator.cpp -lhailort && ./yolohailo
+// g++ -o yolohailo yolov8.cpp -lhailort && ./yolohailo
 
 // Debug
-// g++ -g -O0 -o yolohailo yolov8.cpp allocator.cpp -lhailort && ./yolohailo
+// g++ -g -O0 -o yolohailo yolov8.cpp -lhailort && ./yolohailo
 
 std::string hefFile             = "yolov8s.hef";
 std::string imgFilename         = "test-image-640x640.jpg";
@@ -100,7 +99,6 @@ int run() {
 		return status;
 	}
 
-	Allocator              allocator;
 	std::vector<OutTensor> output_tensors;
 
 	// Output tensors.
