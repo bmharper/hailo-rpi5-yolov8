@@ -1,0 +1,6 @@
+{
+	"files.associations": {
+		"Dockerfile-*": "dockerfile",
+		"typeinfo": "cpp"
+	}
+}

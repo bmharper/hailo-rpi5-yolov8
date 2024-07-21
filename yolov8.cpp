@@ -51,6 +51,12 @@ int run() {
 	printf("infer_model inputstream[0]: %s\n", DumpStream(infer_model->inputs()[0]).c_str());
 	printf("infer_model outputstream[0]: %s\n", DumpStream(infer_model->outputs()[0]).c_str());
 
+	// set_nms_score_threshold is the most straightforward way of controlling the threshold for
+	// which objects end up in the output. If you want to raise this threshold, then it's more
+	// efficient to do so here, vs filtering after NMS processing.
+	auto outputStream = infer_model->output();
+	outputStream->set_nms_score_threshold(0.5f);
+
 	int nnWidth  = infer_model->inputs()[0].shape().width;
 	int nnHeight = infer_model->inputs()[0].shape().height;
 
