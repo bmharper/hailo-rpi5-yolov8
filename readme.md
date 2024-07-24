@@ -44,8 +44,15 @@ And you can find a list of all available models here:
 
 https://github.com/hailo-ai/hailo_model_zoo/blob/master/docs/public_models/HAILO8L/HAILO8l_object_detection.rst
 
-### Measuring FPS
+### Measuring FPS / Batch Size
 
 The example inside [advanced/yolov8-fps.cpp](./advanced/yolov8-fps.cpp) measures the FPS achievable
 by serially running the model, waiting for results, and running again (i.e. no model parallelism),
-at batch size 1.
+at batch size 8.
+
+In order to compile this example, you'll need to be running version 4.18 or later of the Hailo runtime.
+
+The following forum post shows how to install 4.18 on a Raspberry Pi 5. Hopefully this will soon
+be as simple as an "apt upgrade".
+
+https://community.hailo.ai/t/still-unable-to-run-4-18-on-rpi5/1985/14?u=rogojin

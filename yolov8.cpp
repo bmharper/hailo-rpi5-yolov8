@@ -12,15 +12,16 @@
 
 // Use these invocations to build, or 'make'
 
-// Release
-// g++ -o yolohailo yolov8.cpp -lhailort && ./yolohailo
+// With optimizations
+// g++ -O2 -o yolohailo yolov8.cpp -lhailort && ./yolohailo
 
-// Debug
+// No optimizations and Debug info
 // g++ -g -O0 -o yolohailo yolov8.cpp -lhailort && ./yolohailo
 
 std::string hefFile             = "yolov8s.hef";
 std::string imgFilename         = "test-image-640x640.jpg";
-float       confidenceThreshold = 0.5f;
+float       confidenceThreshold = 0.5f;  // Lower number = accept more boxes
+float       nmsIoUThreshold     = 0.45f; // Lower number = merge more boxes (I think!)
 
 int run() {
 	using namespace hailort;
@@ -45,6 +46,8 @@ int run() {
 	}
 	std::shared_ptr<hailort::InferModel> infer_model = infer_model_exp.release();
 	infer_model->set_hw_latency_measurement_flags(HAILO_LATENCY_MEASURE);
+	infer_model->output()->set_nms_score_threshold(confidenceThreshold);
+	infer_model->output()->set_nms_iou_threshold(nmsIoUThreshold);
 
 	printf("infer_model N inputs: %d\n", (int) infer_model->inputs().size());
 	printf("infer_model N outputs: %d\n", (int) infer_model->outputs().size());

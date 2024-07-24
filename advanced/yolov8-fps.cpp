@@ -13,10 +13,11 @@
 
 // g++ -O2 -o yolov8-fps advanced/yolov8-fps.cpp -lhailort && ./yolov8-fps
 
-std::string hefFile             = "yolov8s.hef";
+std::string hefFile             = "yolov8m.hef";
 std::string imgFilename         = "test-image-640x640.jpg";
-float       confidenceThreshold = 0.5f;
-int         batchSize           = 2; // This doesn't work for sizes other than 1. I'm still trying to figure out batch sizes.
+float       confidenceThreshold = 0.5f;  // Lower number = accept more boxes
+float       nmsIoUThreshold     = 0.45f; // Lower number = merge more boxes (I think!)
+int         batchSize           = 8;
 
 int run() {
 	using namespace hailort;
@@ -51,6 +52,8 @@ int run() {
 	std::shared_ptr<hailort::InferModel> infer_model = infer_model_exp.release();
 	infer_model->set_hw_latency_measurement_flags(HAILO_LATENCY_MEASURE);
 	infer_model->set_batch_size(batchSize);
+	infer_model->output()->set_nms_score_threshold(confidenceThreshold);
+	infer_model->output()->set_nms_iou_threshold(nmsIoUThreshold);
 
 	//printf("infer_model N inputs: %d\n", (int) infer_model->inputs().size());
 	//printf("infer_model N outputs: %d\n", (int) infer_model->outputs().size());
@@ -125,9 +128,8 @@ int run() {
 				printf("Failed to get infer model bindings\n");
 				return bindings_exp.status();
 			}
-			hailort::ConfiguredInferModel::Bindings bindings = std::move(bindings_exp.release());
 
-			status = bindings.input(input_name)->set_buffer(MemoryView(img_rgb_8, input_frame_size));
+			status = bindings_exp->input(input_name)->set_buffer(MemoryView(img_rgb_8, input_frame_size));
 			if (status != HAILO_SUCCESS) {
 				printf("Failed to set memory buffer: %d\n", (int) status);
 				return status;
@@ -144,7 +146,7 @@ int run() {
 					return status;
 				}
 
-				status = bindings.output(output_name)->set_buffer(MemoryView(output_buffer, output_size));
+				status = bindings_exp->output(output_name)->set_buffer(MemoryView(output_buffer, output_size));
 				if (status != HAILO_SUCCESS) {
 					printf("Failed to set infer output buffer, status = %d", (int) status);
 					return status;
@@ -185,8 +187,11 @@ int run() {
 
 	double elapsedSeconds = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
 	int    nFrames        = nRun * batchSize;
-	printf("FPS: %.2f\n", nFrames / elapsedSeconds);
-	printf("Time per frame: %.1fms\n", 1000.0 * elapsedSeconds / nFrames);
+	printf("%-16s %d\n", "Batch size", batchSize);
+	printf("%-16s %s\n", "Model", hefFile.c_str());
+	printf("%-16s %d x %d\n", "NN resolution", nnWidth, nnHeight);
+	printf("%-16s %.2f\n", "FPS", nFrames / elapsedSeconds);
+	printf("%-16s %.1fms\n", "Time per frame", 1000.0 * elapsedSeconds / nFrames);
 
 	return 123456789;
 }
